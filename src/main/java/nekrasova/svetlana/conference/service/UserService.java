@@ -28,32 +28,55 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         User user = userRepository.findByUserName(userName);
 
-        if (user == null){
+        if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
 
         return user;
     }
 
-    public User findUserById(Long userId){
+    public User findUserById(Long userId) {
         Optional<User> userFromDB = userRepository.findById(userId);
         return userFromDB.orElse(new User());
     }
 
-    public List<User> allUsers(){
+    public List<User> allUsers() {
         return userRepository.findAll();
     }
 
-    public boolean saveUser(User user) {
+    //    public boolean saveUser(User user) {
+//        User userFromDB = userRepository.findByUserName(user.getUsername());
+//
+//        if (userFromDB != null) {
+//            return false;
+//        }
+//        user.setRole(Role.LISTENER);
+//        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+//        userRepository.save(user);
+//        return true;
+//    }
+    public User saveUser(User user) {
         User userFromDB = userRepository.findByUserName(user.getUsername());
 
         if (userFromDB != null) {
-            return false;
+            return null;
+        }
+        //user.setRole(Role.LISTENER);
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+
+    }
+
+    public User registerUser(User user) {
+        User userFromDB = userRepository.findByUserName(user.getUsername());
+
+        if (userFromDB != null) {
+            return null;
         }
         user.setRole(Role.LISTENER);
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return true;
+        return userRepository.save(user);
+
     }
 
     public boolean deleteUser(Long userId) {
@@ -64,7 +87,7 @@ public class UserService implements UserDetailsService {
         return false;
     }
 
-    public boolean setSpeaker(Long userId){
+    public boolean setSpeaker(Long userId) {
         if (userRepository.findById(userId).isPresent()) {
             User user = userRepository.findById(userId).get();
             user.setRole(Role.SPEAKER);

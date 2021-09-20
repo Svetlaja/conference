@@ -2,35 +2,32 @@ package nekrasova.svetlana.conference.entity;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "talk")
 public class Talk {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "talk_id")
     private long id;
 
     private String talkName;
 
     @ManyToMany(mappedBy = "speakersTalks")
-    private Collection<User> speakers;
+    private Set<User> speakers = new HashSet<>();
 
-    @OneToOne(optional = false, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "schedule_id")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "schedule_id", referencedColumnName = "schedule_id")
     private Schedule schedule;
 
     public Talk() {
     }
 
-    public Talk(String talkName, Collection<User> speakers) {
+    public Talk(String talkName) {
         this.talkName = talkName;
-        this.speakers = speakers;
-    }
 
-    public Talk(String talkName, Collection<User> speakers, Schedule schedule) {
-        this.talkName = talkName;
-        this.speakers = speakers;
-        this.schedule = schedule;
     }
 
     public long getId() {
@@ -49,11 +46,11 @@ public class Talk {
         this.talkName = talkName;
     }
 
-    public Collection<User> getSpeakers() {
+    public Set<User> getSpeakers() {
         return speakers;
     }
 
-    public void setSpeakers(Collection<User> speakers) {
+    public void setSpeakers(Set<User> speakers) {
         this.speakers = speakers;
     }
 

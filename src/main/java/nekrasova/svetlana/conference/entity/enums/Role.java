@@ -7,9 +7,13 @@ public enum Role implements GrantedAuthority {
     SPEAKER,
     LISTENER;
 
+//    @Override
+//    public String getAuthority() {
+//        return "ROLE_" + name();
+//    }
+
     @Override
     public String getAuthority() {
-        return "ROLE_" + name();
+        return name();
     }
-
 }

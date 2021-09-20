@@ -1,20 +1,19 @@
 package nekrasova.svetlana.conference.entity;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "room")
 public class Room {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "room_id")
     private long id;
-
+    @Column(nullable = false, unique = true)
     private String roomName;
-
-    @OneToMany(mappedBy = "room")
-    private Collection<Schedule> schedules;
 
     public Room() {
     }
@@ -38,4 +37,5 @@ public class Room {
     public void setRoomName(String roomName) {
         this.roomName = roomName;
     }
+
 }

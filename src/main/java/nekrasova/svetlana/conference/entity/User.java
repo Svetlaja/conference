@@ -8,19 +8,19 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "user")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private long id;
-    @Size(min = 5, message = "Не меньше 5 знаков")
+    @Size(min = 2, message = "Не меньше 2 знаков")
     private String userName;
-    @Size(min = 5, message = "Не меньше 5 знаков")
+    @Size(min = 2, message = "Не меньше 2 знаков")
     private String password;
     @Transient
     private String passwordConfirm;
@@ -30,11 +30,12 @@ public class User implements UserDetails {
     private Role role;
 
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(name = "speakers_talks",
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "users_talks",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "talk_id"))
-    private Collection<Talk> speakersTalks;
+    private Set<Talk> speakersTalks = new HashSet<>();
+
 
     public User() {
     }
@@ -43,6 +44,16 @@ public class User implements UserDetails {
         this.userName = userName;
         this.password = password;
         this.role = role;
+    }
+
+    public void addTalk(Talk talk) {
+        this.speakersTalks.add(talk);
+        talk.getSpeakers().add(this);
+    }
+
+    public void removeTalk(Talk talk) {
+        this.speakersTalks.remove(talk);
+        talk.getSpeakers().remove(this);
     }
 
     public long getId() {
@@ -116,5 +127,13 @@ public class User implements UserDetails {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Set<Talk> getSpeakersTalks() {
+        return speakersTalks;
+    }
+
+    public void setSpeakersTalks(Set<Talk> speakersTalks) {
+        this.speakersTalks = speakersTalks;
     }
 }
