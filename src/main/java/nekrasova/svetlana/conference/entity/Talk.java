@@ -1,7 +1,6 @@
 package nekrasova.svetlana.conference.entity;
 
 import javax.persistence.*;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,8 +17,7 @@ public class Talk {
     @ManyToMany(mappedBy = "speakersTalks")
     private Set<User> speakers = new HashSet<>();
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "schedule_id", referencedColumnName = "schedule_id")
+    @OneToOne(mappedBy = "talk", cascade = CascadeType.ALL)
     private Schedule schedule;
 
     public Talk() {
@@ -27,7 +25,16 @@ public class Talk {
 
     public Talk(String talkName) {
         this.talkName = talkName;
+    }
 
+    public void addSpeaker(User user) {
+        this.speakers.add(user);
+        user.getSpeakersTalks().add(this);
+    }
+
+    public void removeSpeaker(User user) {
+        this.speakers.remove(user);
+        user.getSpeakersTalks().remove(this);
     }
 
     public long getId() {

@@ -1,7 +1,5 @@
 package nekrasova.svetlana.conference.entity;
 
-import com.sun.istack.NotNull;
-import nekrasova.svetlana.conference.entity.enums.ScheduleTime;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -9,7 +7,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "schedule")
-
 public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,20 +14,19 @@ public class Schedule {
     private long id;
 
     @Column(name = "date_start")
-//    @NotNull
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime dateStart;
 
     @Column(name = "date_end")
-//    @NotNull
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime dateEnd;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "room_id")
     private Room room;
 
-    @OneToOne(mappedBy = "schedule")
+    @OneToOne
+    @JoinColumn(name = "talk_id")
     private Talk talk;
 
     public Schedule() {

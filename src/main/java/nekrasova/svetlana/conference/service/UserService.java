@@ -1,9 +1,14 @@
 package nekrasova.svetlana.conference.service;
 
+import nekrasova.svetlana.conference.entity.Talk;
 import nekrasova.svetlana.conference.entity.User;
 import nekrasova.svetlana.conference.entity.enums.Role;
+import nekrasova.svetlana.conference.entityDto.SpeakerDto;
+import nekrasova.svetlana.conference.entityDto.UserDto;
 import nekrasova.svetlana.conference.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,21 +17,20 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService implements UserDetailsService {
-    @PersistenceContext
-    private EntityManager em;
     @Autowired
     UserRepository userRepository;
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
-    public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        User user = userRepository.findByUserName(userName);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username);
 
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
@@ -35,65 +39,76 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
+    public User getAuthorizedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+        return (User) loadUserByUsername(currentUserName);
+    }
+
     public User findUserById(Long userId) {
         Optional<User> userFromDB = userRepository.findById(userId);
-        return userFromDB.orElse(new User());
+        return userFromDB.orElse(null);
     }
 
-    public List<User> allUsers() {
-        return userRepository.findAll();
-    }
-
-    //    public boolean saveUser(User user) {
-//        User userFromDB = userRepository.findByUserName(user.getUsername());
-//
-//        if (userFromDB != null) {
-//            return false;
-//        }
-//        user.setRole(Role.LISTENER);
-//        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-//        userRepository.save(user);
-//        return true;
-//    }
-    public User saveUser(User user) {
-        User userFromDB = userRepository.findByUserName(user.getUsername());
-
-        if (userFromDB != null) {
-            return null;
+    public List<UserDto> allUsers() {
+        List<UserDto> userDtos = new ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            userDtos.add(UserDto.fromUser(user));
         }
-        //user.setRole(Role.LISTENER);
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        return userDtos;
+    }
+
+    public List<SpeakerDto> getSpeakers() {
+        List<SpeakerDto> speakerDtos = new ArrayList<>();
+        for (User user : userRepository.findByRole(Role.SPEAKER)) {
+            speakerDtos.add(SpeakerDto.getFromUser(user));
+        }
+        return speakerDtos;
+    }
+
+    public boolean ifExistsUserByName(String userName) {
+        User userFromDB = userRepository.findByUsername(userName);
+        if (userFromDB != null) {
+            return true;
+        }
+        return false;
+    }
+
+    public User createUser(UserDto userDto) {
+        User user = new User();
+        user.setUsername(userDto.getUserName());
+        user.setRole(Role.valueOf(userDto.getRoleName()));
+        user.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
         return userRepository.save(user);
-
     }
 
-    public User registerUser(User user) {
-        User userFromDB = userRepository.findByUserName(user.getUsername());
+    public User updateUser(User user, UserDto userDto) {
+        user.setUsername(userDto.getUserName());
+        user.setRole(Role.valueOf(userDto.getRoleName()));
+        user.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
+        return userRepository.save(user);
+    }
 
-        if (userFromDB != null) {
-            return null;
-        }
+    public User registerUser(UserDto userDto) {
+        User user = new User();
+        user.setUsername(userDto.getUserName());
         user.setRole(Role.LISTENER);
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        user.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
+
         return userRepository.save(user);
 
     }
 
-    public boolean deleteUser(Long userId) {
-        if (userRepository.findById(userId).isPresent()) {
-            userRepository.deleteById(userId);
-            return true;
+    public void deleteUser(User user) {
+        for (Talk talk : user.getSpeakersTalks()) {
+            user.removeTalk(talk);
         }
-        return false;
+        userRepository.delete(user);
+
     }
 
-    public boolean setSpeaker(Long userId) {
-        if (userRepository.findById(userId).isPresent()) {
-            User user = userRepository.findById(userId).get();
-            user.setRole(Role.SPEAKER);
-            userRepository.save(user);
-            return true;
-        }
-        return false;
+    public void setSpeaker(User user) {
+        user.setRole(Role.SPEAKER);
+        userRepository.save(user);
     }
 }

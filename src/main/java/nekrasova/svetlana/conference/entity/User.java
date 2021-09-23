@@ -19,14 +19,12 @@ public class User implements UserDetails {
     @Column(name = "user_id")
     private long id;
     @Size(min = 2, message = "Не меньше 2 знаков")
-    private String userName;
+    private String username;
     @Size(min = 2, message = "Не меньше 2 знаков")
     private String password;
-    @Transient
-    private String passwordConfirm;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", columnDefinition = "varchar(32) default 'LISTENER'")
+    @Column(name = "role", columnDefinition = "varchar(32)")
     private Role role;
 
 
@@ -40,8 +38,8 @@ public class User implements UserDetails {
     public User() {
     }
 
-    public User(String userName, String password, Role role) {
-        this.userName = userName;
+    public User(String username, String password, Role role) {
+        this.username = username;
         this.password = password;
         this.role = role;
     }
@@ -64,12 +62,8 @@ public class User implements UserDetails {
         this.id = id;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     @Override
@@ -86,7 +80,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return userName;
+        return username;
     }
 
     @Override
@@ -101,7 +95,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
@@ -111,14 +105,6 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getPasswordConfirm() {
-        return passwordConfirm;
-    }
-
-    public void setPasswordConfirm(String passwordConfirm) {
-        this.passwordConfirm = passwordConfirm;
     }
 
     public Role getRole() {
